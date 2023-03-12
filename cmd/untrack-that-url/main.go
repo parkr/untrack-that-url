@@ -94,6 +94,7 @@ func main() {
 		}
 	})
 
+	fmt.Printf("untrack-that-url: serving on %q\n", *bind)
 	if err := http.ListenAndServe(*bind, nil); err != nil {
 		fmt.Printf("fatal: error serving on %q: %v", *bind, err)
 		os.Exit(1)

@@ -1,4 +1,5 @@
-FROM cgr.dev/chainguard/go:1.20.1 as build
+FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/wolfi-base as build
+RUN apk update && apk add build-base git openssh go-1.20
 WORKDIR /srv/app
 
 COPY go.mod go.sum ./

@@ -9,4 +9,4 @@ jobs:
         go-version: 1.19
     - uses: actions/checkout@v3
     - run: go test ./...
-    - run: docker build --platform linux/amd64 -t untrack-that-url .
+    - run: docker build --build-arg BUILDPLATFORM=linux/amd64 -t untrack-that-url .

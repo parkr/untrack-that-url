@@ -9,3 +9,4 @@ jobs:
         go-version: 1.19
     - uses: actions/checkout@v3
     - run: go test ./...
+    - run: docker build -t untrack-that-url .

@@ -1,5 +1,5 @@
 FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/wolfi-base as build
-RUN apk update && apk search -x go && apk add build-base git openssh go-1.20=1.20.6-r0
+RUN apk update && apk search -x go && apk add build-base git openssh go-1.20=1.20.7-r0
 
 WORKDIR /srv/app
 

@@ -4,7 +4,7 @@ RUN apk update --no-cache \
   && apk add \
     build-base \
     git \
-    go-1.24=1.24.6-r1 \
+    go \
     openssh
 
 WORKDIR /srv/app

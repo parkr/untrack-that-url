@@ -61,12 +61,12 @@ func ResolveURL(u *url.URL) (*Resolution, error) {
 
 	resp, err := client.Head(u.String())
 	if err != nil {
-		return nil, fmt.Errorf("error during request to %s: %v", res.Trail[len(res.Trail)-1], err)
+		return res, fmt.Errorf("error during request to %s: %v", res.Trail[len(res.Trail)-1], err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, resp.Request.URL.String())
+		return res, fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, resp.Request.URL.String())
 	}
 
 	res.URL = resp.Request.URL.String()

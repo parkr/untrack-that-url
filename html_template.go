@@ -131,6 +131,51 @@ var indexTemplate = template.Must(template.New("index.html").Parse(`
       display: none;
     }
 
+    #trail {
+      margin-top: 1.5rem;
+      display: none;
+    }
+
+    .trail-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-left: 2px solid var(--border);
+      margin-left: 0.5rem;
+    }
+
+    .trail-item {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    .trail-item::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: 0.5rem;
+      width: 8px;
+      height: 8px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+
+    .trail-item:last-child {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .trail-item:last-child::before {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
     .result-label {
       font-size: 0.75rem;
       font-weight: 700;
@@ -196,10 +241,15 @@ var indexTemplate = template.Must(template.New("index.html").Parse(`
     <button id="resolveBtn" onclick="submitResolveURL();">Resolve URL</button>
 
     <div id="result">
-      <div class="result-label">Resolved URL</div>
-      <div class="result-box">
+      <div id="resolvedLabel" class="result-label">Resolved URL</div>
+      <div id="resolvedBox" class="result-box">
         <a id="resultURL" class="result-url" href="#" target="_blank" rel="noopener noreferrer"></a>
         <button class="copy-btn" onclick="copyResult();">Copy</button>
+      </div>
+
+      <div id="trail">
+        <div class="result-label">Redirect Trail</div>
+        <ul id="trailList" class="trail-list"></ul>
       </div>
     </div>
   </div>
@@ -210,21 +260,26 @@ var indexTemplate = template.Must(template.New("index.html").Parse(`
     const errorDiv = document.getElementById("errors");
     const resultDiv = document.getElementById("result");
     const resultURL = document.getElementById("resultURL");
+    const resolvedLabel = document.getElementById("resolvedLabel");
+    const resolvedBox = document.getElementById("resolvedBox");
+    const trailDiv = document.getElementById("trail");
+    const trailList = document.getElementById("trailList");
 
     function showError(msg) {
       errorDiv.innerText = msg;
       errorDiv.style.display = "block";
-      resultDiv.style.display = "none";
     }
 
     async function submitResolveURL() {
       const inputURL = urlInput.value.trim();
       if (!inputURL) {
         showError("Please enter a URL to resolve.");
+        resultDiv.style.display = "none";
         return;
       }
 
       errorDiv.style.display = "none";
+      resultDiv.style.display = "none";
       resolveBtn.disabled = true;
       resolveBtn.innerText = "Resolving...";
 
@@ -237,11 +292,30 @@ var indexTemplate = template.Must(template.New("index.html").Parse(`
 
         const info = await response.json();
 
-        if (info.Error) {
-          showError(info.Error);
+        // Render trail if it exists, regardless of error
+        trailList.innerHTML = "";
+        if (info.trail && info.trail.length > 0) {
+          info.trail.forEach(u => {
+            const li = document.createElement("li");
+            li.className = "trail-item";
+            li.innerText = u;
+            trailList.appendChild(li);
+          });
+          trailDiv.style.display = "block";
+          resultDiv.style.display = "block";
         } else {
-          resultURL.innerText = info.URL;
-          resultURL.href = info.URL;
+          trailDiv.style.display = "none";
+        }
+
+        if (info.error) {
+          showError(info.error);
+          resolvedLabel.style.display = "none";
+          resolvedBox.style.display = "none";
+        } else {
+          resultURL.innerText = info.url;
+          resultURL.href = info.url;
+          resolvedLabel.style.display = "block";
+          resolvedBox.style.display = "flex";
           resultDiv.style.display = "block";
           errorDiv.style.display = "none";
         }

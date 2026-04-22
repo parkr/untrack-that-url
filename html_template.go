@@ -14,76 +14,264 @@ var indexTemplate = template.Must(template.New("index.html").Parse(`
   <meta content="origin-when-cross-origin" name="referrer" />
   <title>Untrack That URL</title>
   <style type="text/css">
-  .markdown-body {
-      width: 95%;
-	  margin: 0 auto;
-	  text-align: center;
-  }
-  #errors { color: red; }
-  </style>
-  <script type="application/javascript">
-    function writeError(error) {
-		var errorDiv = document.getElementById("errors");
-		errorDiv.innerText = "error: "+error;
-	}
-    function reqListener () {
-      console.log(this.responseText);
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --error: #ef4444;
+      --success: #10b981;
+      --border: #e2e8f0;
+    }
 
-      if (this.responseText === null || this.responseText === "") {
-        console.error("nada");
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    input[type="text"] {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      width: 100%;
+      transition: border-color 0.2s, ring 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    #errors {
+      color: var(--error);
+      background: #fef2f2;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      display: none;
+      border: 1px solid #fee2e2;
+    }
+
+    #result {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .result-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .result-box {
+      background: var(--bg);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .result-url {
+      font-size: 0.875rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--primary);
+      text-decoration: none;
+      flex: 1;
+    }
+
+    .copy-btn {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      width: auto;
+    }
+
+    .copy-btn:hover {
+      background: var(--bg);
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Untrack That URL</h1>
+    <p class="subtitle">Resolve tracking links safely and privately.</p>
+
+    <div id="errors"></div>
+
+    <div class="input-group">
+      <label for="url">Enter URL to resolve:</label>
+      <input type="text" id="url" name="url" placeholder="https://t.co/..." required autofocus>
+    </div>
+
+    <button id="resolveBtn" onclick="submitResolveURL();">Resolve URL</button>
+
+    <div id="result">
+      <div class="result-label">Resolved URL</div>
+      <div class="result-box">
+        <a id="resultURL" class="result-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button class="copy-btn" onclick="copyResult();">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/javascript">
+    const urlInput = document.getElementById("url");
+    const resolveBtn = document.getElementById("resolveBtn");
+    const errorDiv = document.getElementById("errors");
+    const resultDiv = document.getElementById("result");
+    const resultURL = document.getElementById("resultURL");
+
+    function showError(msg) {
+      errorDiv.innerText = msg;
+      errorDiv.style.display = "block";
+      resultDiv.style.display = "none";
+    }
+
+    async function submitResolveURL() {
+      const inputURL = urlInput.value.trim();
+      if (!inputURL) {
+        showError("Please enter a URL to resolve.");
         return;
       }
 
-	  var info = JSON.parse(this.responseText);
+      errorDiv.style.display = "none";
+      resolveBtn.disabled = true;
+      resolveBtn.innerText = "Resolving...";
 
-	  if (info.Error !== undefined) {
-		writeError(info.Error);
-		return
-	  }
+      try {
+        const response = await fetch("/resolve.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: "url=" + encodeURIComponent(inputURL)
+        });
 
-      var resultDiv = document.getElementById("resultURL");
-      resultDiv.innerText = "";
+        const info = await response.json();
 
-      var anchor = document.createElement("a");
-      anchor.href = info.URL;
-      anchor.title = "Resolved URL";
-      anchor.innerText = info.URL;
-	  resultDiv.appendChild(anchor);
+        if (info.Error) {
+          showError(info.Error);
+        } else {
+          resultURL.innerText = info.URL;
+          resultURL.href = info.URL;
+          resultDiv.style.display = "block";
+          errorDiv.style.display = "none";
+        }
+      } catch (err) {
+        showError("An unexpected error occurred. Please try again.");
+        console.error(err);
+      } finally {
+        resolveBtn.disabled = false;
+        resolveBtn.innerText = "Resolve URL";
+      }
     }
 
-	function submitResolveURL() {
-	  document.getElementById("errors").innerText = ""
+    async function copyResult() {
+      const text = resultURL.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        const copyBtn = document.querySelector(".copy-btn");
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "Copied!";
+        setTimeout(() => { copyBtn.innerText = originalText; }, 2000);
+      } catch (err) {
+        console.error("Failed to copy: ", err);
+      }
+    }
 
-	  var inputURL = document.getElementById("url").value;
-      if (inputURL === undefined || inputURL === "") {
-		  writeError("input URL required");
-		  return
-	  }
-	  var params = 'url='+escape(inputURL);
-
-	  var oReq = new XMLHttpRequest();
-  	  oReq.addEventListener("load", reqListener);
-	  oReq.open("POST", "/resolve.json", true);
-	  oReq.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	  oReq.send(params);
-	}
-
-    </script>
-  </head>
-  <body>
-    <div class="markdown-body">
-	  <p>Enter a URL to resolve:</p>
-	  <p>
-	    <div id="errors"></div>
-        <label for="name">URL:</label>
-	    <input type="text" id="url" name="url" required>
-		<input type="button" onclick="submitResolveURL();" value="Resolve">
-	  </p>
-	  <p>
-		<div id="resultURL"></div>
-	  </p>
-    </div>
-  </body>
+    urlInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") submitResolveURL();
+    });
+  </script>
+</body>
 </html>
 `))
 

@@ -1,5 +1,5 @@
 module github.com/parkr/untrack-that-url
 
-// +heroku goVersion go1.19
+// +heroku goVersion go1.26
 
-go 1.19
+go 1.26

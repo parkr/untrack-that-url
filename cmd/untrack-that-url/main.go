@@ -12,11 +12,12 @@ import (
 )
 
 type urlResponse struct {
-	URL string
+	URL   string   `json:"url"`
+	Trail []string `json:"trail"`
 }
 
 type structuredError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 func jsonError(w http.ResponseWriter, errMessage string, code int) error {
@@ -65,7 +66,7 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json; charset=utf8")
 
-		newURL, err := untrackthaturl.ResolveURL(u)
+		resolution, err := untrackthaturl.ResolveURL(u)
 		if err != nil {
 			err := jsonError(w, "unable to resolve url: "+err.Error(), http.StatusInternalServerError)
 			if err != nil {
@@ -74,7 +75,10 @@ func main() {
 			return
 		}
 
-		err = json.NewEncoder(w).Encode(urlResponse{newURL.String()})
+		err = json.NewEncoder(w).Encode(urlResponse{
+			URL:   resolution.URL,
+			Trail: resolution.Trail,
+		})
 		if err != nil {
 			err := jsonError(w, "unable to encode json: "+err.Error(), http.StatusInternalServerError)
 			if err != nil {

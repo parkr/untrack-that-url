@@ -26,7 +26,7 @@ func jsonError(w http.ResponseWriter, errMessage string, code int) error {
 	if err != nil {
 		return err
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf8")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	_, err = w.Write(encoded)
 	return err
@@ -59,7 +59,7 @@ func newServerMux() *http.ServeMux {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		resolution, err := untrackthaturl.ResolveURL(u)
 		if err != nil {

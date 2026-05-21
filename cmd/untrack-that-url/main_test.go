@@ -66,7 +66,7 @@ func TestResolveJSONHandler(t *testing.T) {
 		if resp.StatusCode != http.StatusMethodNotAllowed {
 			t.Fatalf("expected status %d, got %d", http.StatusMethodNotAllowed, resp.StatusCode)
 		}
-		if got := resp.Header.Get("Content-Type"); got != "application/json; charset=utf8" {
+		if got := resp.Header.Get("Content-Type"); got != "application/json; charset=utf-8" {
 			t.Fatalf("unexpected content type: %q", got)
 		}
 
@@ -111,7 +111,7 @@ func TestResolveJSONHandler(t *testing.T) {
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("expected status %d, got %d", http.StatusOK, resp.StatusCode)
 		}
-		if got := resp.Header.Get("Content-Type"); got != "application/json; charset=utf8" {
+		if got := resp.Header.Get("Content-Type"); got != "application/json; charset=utf-8" {
 			t.Fatalf("unexpected content type: %q", got)
 		}
 

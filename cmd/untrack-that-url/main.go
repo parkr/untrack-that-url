@@ -26,21 +26,15 @@ func jsonError(w http.ResponseWriter, errMessage string, code int) error {
 	if err != nil {
 		return err
 	}
-	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json; charset=utf8")
+	w.WriteHeader(code)
 	_, err = w.Write(encoded)
 	return err
 }
 
-func main() {
-	bind := flag.String("http", ":8080", "IP:PORT to bind http server to")
-	flag.Parse()
-	if *bind == "" {
-		fmt.Println("fatal: -bind flag requires a value")
-		os.Exit(1)
-	}
-
-	http.HandleFunc("/resolve.json", func(w http.ResponseWriter, req *http.Request) {
+func newServerMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/resolve.json", func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			err := jsonError(w, "unacceptable HTTP method", http.StatusMethodNotAllowed)
 			if err != nil {
@@ -90,7 +84,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			http.Error(w, "unacceptable method", http.StatusMethodNotAllowed)
 			return
@@ -99,9 +93,19 @@ func main() {
 			http.Error(w, "error rendering html", http.StatusInternalServerError)
 		}
 	})
+	return mux
+}
+
+func main() {
+	bind := flag.String("http", ":8080", "IP:PORT to bind http server to")
+	flag.Parse()
+	if *bind == "" {
+		fmt.Println("fatal: -bind flag requires a value")
+		os.Exit(1)
+	}
 
 	fmt.Printf("untrack-that-url: serving on %q\n", *bind)
-	if err := http.ListenAndServe(*bind, nil); err != nil {
+	if err := http.ListenAndServe(*bind, newServerMux()); err != nil {
 		fmt.Printf("fatal: error serving on %q: %v", *bind, err)
 		os.Exit(1)
 	}
